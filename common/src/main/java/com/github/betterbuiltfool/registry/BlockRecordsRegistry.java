@@ -1,6 +1,6 @@
 package com.github.betterbuiltfool.registry;
 
-import com.github.betterbuiltfool.BlockDataType;
+import com.github.betterbuiltfool.records.BlockDataType;
 import com.github.betterbuiltfool.BlockRecords;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.Registrar;

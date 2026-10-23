@@ -1,4 +1,4 @@
-package com.github.betterbuiltfool;
+package com.github.betterbuiltfool.records;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
