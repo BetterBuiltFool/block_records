@@ -9,7 +9,6 @@ public interface BlockData {
      * Allows the record to be saved as NBT data.
      * Do not add the BlockDataType to the tag.
      * @param dataTag A tag for saving the data to.
-     * @return The dataTag with all NBT serialization data
      */
-    CompoundTag toNbt(CompoundTag dataTag);
+    void toNbt(CompoundTag dataTag);
 }
