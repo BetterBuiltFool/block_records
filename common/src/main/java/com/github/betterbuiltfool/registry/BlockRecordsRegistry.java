@@ -1,17 +1,13 @@
 package com.github.betterbuiltfool.registry;
 
-import com.github.betterbuiltfool.BlockData;
 import com.github.betterbuiltfool.BlockDataType;
 import com.github.betterbuiltfool.BlockRecords;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
-import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-
-import java.util.function.Supplier;
 
 public class BlockRecordsRegistry {
     public static final ResourceKey<Registry<BlockDataType<?>>> BLOCK_DATA_TYPE_REGISTRY_KEY = ResourceKey.createRegistryKey(
