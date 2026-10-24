@@ -51,8 +51,7 @@ public class SyncedChunkData {
         
         dataMap.put(dataType, canonical);
         
-        var typePositions = typeMap.get(dataType);
-        if (typePositions == null) return;
+        var typePositions = typeMap.computeIfAbsent(dataType, key -> new HashSet<>());
         
         typePositions.add(pos);
     }
