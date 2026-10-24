@@ -1,14 +1,19 @@
 package com.github.betterbuiltfool.internal;
 
+import com.github.betterbuiltfool.BlockRecords;
 import com.github.betterbuiltfool.records.BlockData;
 import com.github.betterbuiltfool.records.BlockDataType;
+import com.github.betterbuiltfool.registry.BlockRecordsRegistry;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SyncedChunkData {
@@ -86,6 +91,58 @@ public class SyncedChunkData {
         
         dataMap.remove(dataType);
         typePositions.remove(pos);
+    }
+    
+    /**
+     * Converts the chunk data into serialized NBT
+     * @param root The root tag the chunk is being added to.
+     */
+    public void serialize(CompoundTag root) {
+        ListTag chunkDataTag = new ListTag();
+        Map<BlockDataType<?>, Map<BlockData, List<BlockPos>>> uniqueRecords = collectUniqueRecords();
+        for (var typeEntry:uniqueRecords.entrySet()) {
+            BlockDataType<?> dataType = typeEntry.getKey();
+            ResourceLocation id = BlockRecordsRegistry.DATA_TYPES.getId(dataType);
+            
+            if (id == null) continue;
+            
+            for (var dataEntry:typeEntry.getValue().entrySet()) {
+                BlockData uniqueRecord = dataEntry.getKey();
+                List<BlockPos> posList = dataEntry.getValue();
+                
+                CompoundTag dataTag = new CompoundTag();
+                dataTag.putString(BlockRecords.MOD_ID + ":type_id", id.toString());
+                
+                ListTag tagList = new ListTag();
+                for (BlockPos pos:posList) {
+                    tagList.add(NbtUtils.writeBlockPos(pos));
+                }
+                dataTag.put(BlockRecords.MOD_ID + ":positions", tagList);
+                
+                uniqueRecord.toNbt(dataTag);
+                chunkDataTag.add(dataTag);
+            }
+        }
+        root.put(BlockRecords.MOD_ID + ":chunk_data", chunkDataTag);
+    }
+    
+    /**
+     * Collapses the record data into a map with each unique record only appearing once, to save disk space.
+     * The unique records will have a list of shared positions
+     * @return A Map that contains the unique record instances with their positions, mapped to their type.
+     */
+    private Map<BlockDataType<?>, Map<BlockData, List<BlockPos>>> collectUniqueRecords() {
+        Map<BlockDataType<?>, Map<BlockData, List<BlockPos>>> uniquesMap = new HashMap<>();
+        for (var entry:spatialMap.entrySet()) {
+            var pos = entry.getKey();
+            var typeMap = entry.getValue();
+            for (var typeEntry:typeMap.entrySet()) {
+                Map<BlockData, List<BlockPos>> map = uniquesMap.computeIfAbsent(typeEntry.getKey(), key -> new HashMap<>());
+                List<BlockPos> posList = map.computeIfAbsent(typeEntry.getValue(), key -> new ArrayList<>());
+                posList.add(pos);
+            }
+        }
+        return uniquesMap;
     }
     
 }
