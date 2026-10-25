@@ -100,6 +100,14 @@ public class SyncedChunkData {
         if (dataMap == null) return;
         
         purgeOldData(pos, dataType, dataMap);
+        sendClearPacket(pos, dataType);
+    }
+    
+    private void sendClearPacket(
+            BlockPos pos,
+            BlockDataType<?> dataType
+    ) {
+    
     }
     
     public synchronized <T extends BlockData> void collectPositionsForType(
