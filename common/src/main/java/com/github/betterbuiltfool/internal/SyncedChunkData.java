@@ -107,6 +107,7 @@ public class SyncedChunkData {
             BlockPos pos,
             BlockDataType<?> dataType
     ) {
+        if (!ClientSyncableBlockData.class.isAssignableFrom(dataType.getRegisteredType())) return;
     
     }
     
