@@ -6,9 +6,11 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.function.Function;
 
 public class BlockDataType<T extends BlockData> {
+    private final Class<T> registeredDataClass;
     private final Function<CompoundTag, T> deserializer;
     
-    public BlockDataType(Function<CompoundTag, T> deserializer) {
+    public BlockDataType(Class<T> registeredDataClass, Function<CompoundTag, T> deserializer) {
+        this.registeredDataClass = registeredDataClass;
         this.deserializer = deserializer;
     }
     
@@ -20,6 +22,10 @@ public class BlockDataType<T extends BlockData> {
         CompoundTag tag = new CompoundTag();
         data.toNbt(tag);
         root.put(id.toString(), tag);
+    }
+    
+    public Class<T> getRegisteredType() {
+        return this.registeredDataClass;
     }
     
     public T deserialize(CompoundTag tag) {
