@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,6 +18,10 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SyncedChunkData {
+    
+    public static final String CHUNK_DATA_ID = BlockRecords.MOD_ID + ":chunk_data";
+    public static final String TYPE_ID = BlockRecords.MOD_ID + ":type_id";
+    public static final String POSITIONS_ID = BlockRecords.MOD_ID + ":positions";
     
     private final Map<BlockPos, Map<BlockDataType<?>, BlockData>> spatialMap = new ConcurrentHashMap<>();
     
@@ -35,14 +40,24 @@ public class SyncedChunkData {
         return spatialMap.get(pos);
     }
     
-    @SuppressWarnings("unchecked")
-    public synchronized <T extends BlockData> void set(
+    public synchronized void set(
             @NotNull BlockPos pos,
             @NotNull BlockDataType<?> dataType,
             BlockData data
     ) {
         if (data == null) return;
         
+        setRaw(pos, dataType, data);
+        
+        sendUpdatePacket(data, dataType, pos);
+    }
+    
+    @SuppressWarnings("unchecked")
+    private <T extends BlockData> void setRaw(
+            @NotNull BlockPos pos,
+            @NotNull BlockDataType<?> dataType,
+            BlockData data
+    ) {
         var dataMap = spatialMap.computeIfAbsent(pos, key -> new ConcurrentHashMap<>());
         
         purgeOldData(pos, dataType, dataMap);
@@ -54,6 +69,27 @@ public class SyncedChunkData {
         var typePositions = typeMap.computeIfAbsent(dataType, key -> new HashSet<>());
         
         typePositions.add(pos);
+    }
+    private synchronized void set(
+            @NotNull List<BlockPos> posList,
+            @NotNull BlockDataType<?> dataType,
+            BlockData data
+    ) {
+        if (data == null) return;
+        
+        for (BlockPos pos:posList) {
+            
+            setRaw(pos, dataType, data);
+        }
+        sendUpdatePacket(data, dataType, posList.toArray(BlockPos[]::new));
+    }
+    
+    private void sendUpdatePacket(
+            BlockData data,
+            BlockDataType<?> dataType,
+            BlockPos... array
+    ) {
+        // Send a packet to the client with the data
     }
     
     public synchronized void clear(BlockPos pos, BlockDataType<?> dataType) {
@@ -108,21 +144,25 @@ public class SyncedChunkData {
             for (var dataEntry:typeEntry.getValue().entrySet()) {
                 BlockData uniqueRecord = dataEntry.getKey();
                 List<BlockPos> posList = dataEntry.getValue();
+                CompoundTag metaData = new CompoundTag();
                 
                 CompoundTag dataTag = new CompoundTag();
-                dataTag.putString(BlockRecords.MOD_ID + ":type_id", id.toString());
+                metaData.putString(TYPE_ID, id.toString());
                 
                 ListTag tagList = new ListTag();
                 for (BlockPos pos:posList) {
                     tagList.add(NbtUtils.writeBlockPos(pos));
                 }
-                dataTag.put(BlockRecords.MOD_ID + ":positions", tagList);
+                metaData.put(POSITIONS_ID, tagList);
                 
                 uniqueRecord.toNbt(dataTag);
-                chunkDataTag.add(dataTag);
+                CompoundTag compositeData = new CompoundTag();
+                compositeData.put("payload", dataTag);
+                compositeData.put("metadata", metaData);
+                chunkDataTag.add(compositeData);
             }
         }
-        root.put(BlockRecords.MOD_ID + ":chunk_data", chunkDataTag);
+        root.put(CHUNK_DATA_ID, chunkDataTag);
     }
     
     /**
@@ -142,6 +182,60 @@ public class SyncedChunkData {
             }
         }
         return uniquesMap;
+    }
+    
+    public static SyncedChunkData deserialize(CompoundTag root) {
+        SyncedChunkData newChunkData = new SyncedChunkData();
+        Map<String, BlockDataType<?>> loadedTypes = new HashMap<>();
+        if (!root.contains(CHUNK_DATA_ID)) return newChunkData;
+        
+        ListTag chunkDataTag = root.getList(CHUNK_DATA_ID, ListTag.TAG_COMPOUND);
+        
+        for (Tag tag:chunkDataTag) {
+            CompoundTag compositeTag = (CompoundTag) tag;
+            if (!compositeTag.contains("metadata")) continue;
+            if (!compositeTag.contains("payload")) continue;
+            
+            CompoundTag metaData = compositeTag.getCompound("metadata");
+            BlockDataType<?> dataType = getDataType(metaData, loadedTypes);
+            if (dataType == null) continue;
+            
+            ListTag posListTag = metaData.getList(POSITIONS_ID, ListTag.TAG_COMPOUND);
+            List<BlockPos> posList = getPosList(posListTag);
+            if (posList.isEmpty()) continue;
+            
+            CompoundTag dataTag = compositeTag.getCompound("payload");
+            BlockData blockData = dataType.deserialize(dataTag);
+            if (blockData == null) continue;
+            newChunkData.set(posList, dataType, blockData);
+        }
+        
+        return newChunkData;
+    }
+    
+    private static List<BlockPos> getPosList(ListTag posListTag) {
+        List<BlockPos> posList = new ArrayList<>();
+        for (Tag tag:posListTag) {
+            CompoundTag posTag = (CompoundTag) tag;
+            BlockPos pos = NbtUtils.readBlockPos(posTag);
+            posList.add(pos);
+        }
+        return posList;
+    }
+    
+    private static @Nullable BlockDataType<?> getDataType(
+            CompoundTag dataTag,
+            Map<String, BlockDataType<?>> loadedTypes
+    ) {
+        if (!dataTag.contains(TYPE_ID)) return null;
+        
+        String type_id = dataTag.getString(TYPE_ID);
+        return loadedTypes.computeIfAbsent(type_id, key -> {
+            ResourceLocation type_location = ResourceLocation.tryParse(key);
+            if (type_location == null) return null;
+            
+            return BlockRecordsRegistry.DATA_TYPES.get(type_location);
+        });
     }
     
 }
