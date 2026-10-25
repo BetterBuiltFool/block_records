@@ -3,6 +3,7 @@ package com.github.betterbuiltfool.internal;
 import com.github.betterbuiltfool.BlockRecords;
 import com.github.betterbuiltfool.records.BlockData;
 import com.github.betterbuiltfool.records.BlockDataType;
+import com.github.betterbuiltfool.records.ClientSyncableBlockData;
 import com.github.betterbuiltfool.registry.BlockRecordsRegistry;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
@@ -49,7 +50,8 @@ public class SyncedChunkData {
         
         setRaw(pos, dataType, data);
         
-        sendUpdatePacket(data, dataType, pos);
+        if (!(data instanceof ClientSyncableBlockData syncableData)) return;
+        sendUpdatePacket(syncableData, dataType, pos);
     }
     
     @SuppressWarnings("unchecked")
@@ -81,11 +83,12 @@ public class SyncedChunkData {
             
             setRaw(pos, dataType, data);
         }
-        sendUpdatePacket(data, dataType, posList.toArray(BlockPos[]::new));
+        if (!(data instanceof ClientSyncableBlockData syncableData)) return;
+        sendUpdatePacket(syncableData, dataType, posList.toArray(BlockPos[]::new));
     }
     
     private void sendUpdatePacket(
-            BlockData data,
+            ClientSyncableBlockData data,
             BlockDataType<?> dataType,
             BlockPos... array
     ) {
@@ -97,6 +100,15 @@ public class SyncedChunkData {
         if (dataMap == null) return;
         
         purgeOldData(pos, dataType, dataMap);
+        sendClearPacket(pos, dataType);
+    }
+    
+    private void sendClearPacket(
+            BlockPos pos,
+            BlockDataType<?> dataType
+    ) {
+        if (!ClientSyncableBlockData.class.isAssignableFrom(dataType.getRegisteredType())) return;
+    
     }
     
     public synchronized <T extends BlockData> void collectPositionsForType(
