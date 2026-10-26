@@ -2,9 +2,8 @@ package com.github.betterbuiltfool.registry;
 
 import com.github.betterbuiltfool.records.BlockDataType;
 import com.github.betterbuiltfool.BlockRecords;
-import dev.architectury.registry.registries.DeferredRegister;
-import dev.architectury.registry.registries.Registrar;
-import dev.architectury.registry.registries.RegistrarManager;
+import com.mojang.serialization.Lifecycle;
+import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -14,15 +13,5 @@ public class BlockRecordsRegistry {
             new ResourceLocation(BlockRecords.MOD_ID, "data_types")
     );
     
-    public static final DeferredRegister<BlockDataType<?>> BLOCK_DATA_TYPE_REGISTER = DeferredRegister.create(
-            BlockRecords.MOD_ID, BLOCK_DATA_TYPE_REGISTRY_KEY
-    );
-    
-    public static final Registrar<BlockDataType<?>> DATA_TYPES = RegistrarManager.get(BlockRecords.MOD_ID).<BlockDataType<?>>builder(
-            BLOCK_DATA_TYPE_REGISTRY_KEY.location()
-    ).syncToClients().build();
-    
-    public static void init() {
-        BLOCK_DATA_TYPE_REGISTER.register();
-    }
+    public static final Registry<BlockDataType<?>> DATA_TYPES = new MappedRegistry<>(BLOCK_DATA_TYPE_REGISTRY_KEY, Lifecycle.stable(), false);
 }

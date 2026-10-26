@@ -149,7 +149,7 @@ public class SyncedChunkData {
         Map<BlockDataType<?>, Map<BlockData, List<BlockPos>>> uniqueRecords = collectUniqueRecords();
         for (var typeEntry:uniqueRecords.entrySet()) {
             BlockDataType<?> dataType = typeEntry.getKey();
-            ResourceLocation id = BlockRecordsRegistry.DATA_TYPES.getId(dataType);
+            ResourceLocation id = BlockRecordsRegistry.DATA_TYPES.getKey(dataType);
             
             if (id == null) continue;
             
