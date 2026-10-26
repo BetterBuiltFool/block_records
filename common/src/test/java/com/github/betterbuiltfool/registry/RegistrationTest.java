@@ -1,5 +1,6 @@
 package com.github.betterbuiltfool.registry;
 
+import com.github.betterbuiltfool.data.TestData;
 import com.github.betterbuiltfool.records.BlockData;
 import com.github.betterbuiltfool.records.BlockDataType;
 import net.minecraft.core.Registry;
@@ -21,17 +22,5 @@ public class RegistrationTest {
         
         assertSame(TEST_DATA, registry.get(testLocation));
         assertEquals(testLocation, registry.getKey(TEST_DATA));
-    }
-    
-    public record TestData(boolean isTrue) implements BlockData {
-        
-        @Override
-        public void toNbt(CompoundTag dataTag) {
-            //No need to actually do anything here
-        }
-        
-        public static TestData deserialize(CompoundTag root) {
-            return new TestData(true);
-        }
     }
 }
