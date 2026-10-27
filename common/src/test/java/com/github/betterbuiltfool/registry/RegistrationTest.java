@@ -1,5 +1,6 @@
 package com.github.betterbuiltfool.registry;
 
+import com.github.betterbuiltfool.BootstrapRequiredTest;
 import com.github.betterbuiltfool.data.TestData;
 import com.github.betterbuiltfool.records.BlockData;
 import com.github.betterbuiltfool.records.BlockDataType;
@@ -11,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-public class RegistrationTest {
+public class RegistrationTest extends BootstrapRequiredTest {
     
     @Test
     void testRegister() {

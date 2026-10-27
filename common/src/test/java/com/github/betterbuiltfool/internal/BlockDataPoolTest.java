@@ -1,5 +1,6 @@
 package com.github.betterbuiltfool.internal;
 
+import com.github.betterbuiltfool.BootstrapRequiredTest;
 import com.github.betterbuiltfool.data.TestData;
 import com.github.betterbuiltfool.records.BlockDataType;
 import com.github.betterbuiltfool.registry.BlockRecordsRegistry;
@@ -11,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-public class BlockDataPoolTest {
+public class BlockDataPoolTest extends BootstrapRequiredTest {
     
     static BlockDataType<TestData> TEST_DATA;
     static ResourceLocation TEST_ID = new ResourceLocation("testmod", "testData");
