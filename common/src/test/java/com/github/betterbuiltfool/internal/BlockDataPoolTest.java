@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 public class BlockDataPoolTest extends BootstrapRequiredTest {
     
     static BlockDataType<TestData> TEST_DATA;
-    static ResourceLocation TEST_ID = new ResourceLocation("testmod", "testData");
+    static ResourceLocation TEST_ID = new ResourceLocation("testmod", "test_data");
     
     @BeforeEach
     void setUp() {
