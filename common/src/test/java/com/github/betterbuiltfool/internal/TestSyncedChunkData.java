@@ -12,8 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TestSyncedChunkData extends BootstrapRequiredTest {
     public static Registry<BlockDataType<?>> REGISTRY;
@@ -46,5 +45,11 @@ public class TestSyncedChunkData extends BootstrapRequiredTest {
         
         var typeMap = chunkData.typeMap;
         assertTrue(typeMap.containsKey(testDataBlockDataType));
+        
+        BlockPos nullPos = new BlockPos(1, 1, 1);
+        
+        chunkData.set(nullPos, testDataBlockDataType, null);
+        
+        assertFalse(spatialMap.containsKey(nullPos));
     }
 }
