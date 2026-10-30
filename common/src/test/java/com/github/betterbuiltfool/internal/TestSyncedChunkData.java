@@ -52,4 +52,23 @@ public class TestSyncedChunkData extends BootstrapRequiredTest {
         
         assertFalse(spatialMap.containsKey(nullPos));
     }
+    
+    @Test
+    void testGet() {
+        TestData testData = new TestData(true);
+        BlockPos testPos = new BlockPos(0, 0, 0);
+        
+        chunkData.set(testPos, testDataBlockDataType, testData);
+        
+        var expected = chunkData.get(testPos, testDataBlockDataType);
+        
+        assertSame(expected, testData);
+        
+        var expectedMap = chunkData.get(testPos);
+        
+        assertEquals(1, expectedMap.size());
+        assertTrue(expectedMap.containsKey(testDataBlockDataType));
+        assertTrue(expectedMap.containsValue(testData));
+    }
+    
 }
