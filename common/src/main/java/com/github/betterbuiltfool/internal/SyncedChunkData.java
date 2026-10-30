@@ -72,7 +72,7 @@ public class SyncedChunkData {
         
         typePositions.add(pos);
     }
-    private synchronized void set(
+    public synchronized void set(
             @NotNull List<BlockPos> posList,
             @NotNull BlockDataType<?> dataType,
             BlockData data
