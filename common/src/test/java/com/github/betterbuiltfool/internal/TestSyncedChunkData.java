@@ -93,4 +93,26 @@ public class TestSyncedChunkData extends BootstrapRequiredTest {
         assertSame(outMap.get(testPos2), testData);
     }
     
+    @Test
+    void testClear() {
+        TestData testData = new TestData(true);
+        BlockPos testPos = new BlockPos(0, 0, 0);
+        
+        chunkData.set(testPos, testDataBlockDataType, testData);
+        
+        var spatialMap = chunkData.spatialMap;
+        assertTrue(spatialMap.containsKey(testPos));
+        var dataMap = spatialMap.get(testPos);
+        assertTrue(dataMap.containsKey(testDataBlockDataType));
+        assertSame(dataMap.get(testDataBlockDataType), testData);
+        
+        var typeMap = chunkData.typeMap;
+        assertTrue(typeMap.containsKey(testDataBlockDataType));
+        
+        chunkData.clear(testPos, testDataBlockDataType);
+        
+        assertFalse(dataMap.containsKey(testDataBlockDataType));
+        assertFalse(typeMap.containsKey(testDataBlockDataType));
+    }
+    
 }
