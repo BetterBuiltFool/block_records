@@ -12,6 +12,10 @@ import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestSyncedChunkData extends BootstrapRequiredTest {
@@ -64,11 +68,29 @@ public class TestSyncedChunkData extends BootstrapRequiredTest {
         
         assertSame(expected, testData);
         
-        var expectedMap = chunkData.get(testPos);
+        var resultMap = chunkData.get(testPos);
         
-        assertEquals(1, expectedMap.size());
-        assertTrue(expectedMap.containsKey(testDataBlockDataType));
-        assertTrue(expectedMap.containsValue(testData));
+        assertEquals(1, resultMap.size());
+        assertTrue(resultMap.containsKey(testDataBlockDataType));
+        assertTrue(resultMap.containsValue(testData));
+    }
+    
+    @Test
+    void testGetPositionsForType() {
+        TestData testData = new TestData(true);
+        BlockPos testPos = new BlockPos(0, 0, 0);
+        BlockPos testPos2 = new BlockPos(1, 1, 1);
+        Map<BlockPos, TestData> outMap = new HashMap<>();
+        
+        chunkData.set(List.of(testPos, testPos2), testDataBlockDataType, testData);
+        
+        chunkData.collectPositionsForType(testDataBlockDataType, outMap);
+        
+        assertEquals(2, outMap.size());
+        assertTrue(outMap.containsKey(testPos));
+        assertTrue(outMap.containsKey(testPos2));
+        assertSame(outMap.get(testPos), testData);
+        assertSame(outMap.get(testPos2), testData);
     }
     
 }
