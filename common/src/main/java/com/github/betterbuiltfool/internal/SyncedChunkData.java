@@ -138,6 +138,9 @@ public class SyncedChunkData {
         
         dataMap.remove(dataType);
         typePositions.remove(pos);
+        if (typePositions.isEmpty()) {
+            typeMap.remove(dataType);
+        }
     }
     
     /**
