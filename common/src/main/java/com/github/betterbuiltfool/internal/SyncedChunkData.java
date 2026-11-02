@@ -4,6 +4,7 @@ import com.github.betterbuiltfool.BlockRecords;
 import com.github.betterbuiltfool.records.BlockData;
 import com.github.betterbuiltfool.records.BlockDataType;
 import com.github.betterbuiltfool.records.ClientSyncable;
+import com.github.betterbuiltfool.records.Serializable;
 import com.github.betterbuiltfool.registry.BlockRecordsRegistry;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
@@ -149,7 +150,7 @@ public class SyncedChunkData {
      */
     public void serialize(CompoundTag root) {
         ListTag chunkDataTag = new ListTag();
-        Map<BlockDataType<?>, Map<BlockData, List<BlockPos>>> uniqueRecords = collectUniqueRecords();
+        Map<BlockDataType<?>, Map<Serializable, List<BlockPos>>> uniqueRecords = collectUniqueRecords();
         for (var typeEntry:uniqueRecords.entrySet()) {
             BlockDataType<?> dataType = typeEntry.getKey();
             ResourceLocation id = BlockRecordsRegistry.DATA_TYPES.getKey(dataType);
@@ -157,7 +158,7 @@ public class SyncedChunkData {
             if (id == null) continue;
             
             for (var dataEntry:typeEntry.getValue().entrySet()) {
-                BlockData uniqueRecord = dataEntry.getKey();
+                Serializable uniqueRecord = dataEntry.getKey();
                 List<BlockPos> posList = dataEntry.getValue();
                 CompoundTag metaData = new CompoundTag();
                 
@@ -185,14 +186,15 @@ public class SyncedChunkData {
      * The unique records will have a list of shared positions
      * @return A Map that contains the unique record instances with their positions, mapped to their type.
      */
-    private Map<BlockDataType<?>, Map<BlockData, List<BlockPos>>> collectUniqueRecords() {
-        Map<BlockDataType<?>, Map<BlockData, List<BlockPos>>> uniquesMap = new HashMap<>();
+    private Map<BlockDataType<?>, Map<Serializable, List<BlockPos>>> collectUniqueRecords() {
+        Map<BlockDataType<?>, Map<Serializable, List<BlockPos>>> uniquesMap = new HashMap<>();
         for (var entry:spatialMap.entrySet()) {
             var pos = entry.getKey();
             var typeMap = entry.getValue();
             for (var typeEntry:typeMap.entrySet()) {
-                Map<BlockData, List<BlockPos>> map = uniquesMap.computeIfAbsent(typeEntry.getKey(), key -> new HashMap<>());
-                List<BlockPos> posList = map.computeIfAbsent(typeEntry.getValue(), key -> new ArrayList<>());
+                if (!(typeEntry.getValue() instanceof Serializable dataRecord)) continue;
+                Map<Serializable, List<BlockPos>> map = uniquesMap.computeIfAbsent(typeEntry.getKey(), key -> new HashMap<>());
+                List<BlockPos> posList = map.computeIfAbsent(dataRecord, key -> new ArrayList<>());
                 posList.add(pos);
             }
         }

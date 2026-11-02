@@ -20,7 +20,8 @@ public class BlockDataType<T extends BlockData> {
             T data
     ) {
         CompoundTag tag = new CompoundTag();
-        data.toNbt(tag);
+        if (!(data instanceof Serializable serialData)) return;
+        serialData.toNbt(tag);
         root.put(id.toString(), tag);
     }
     
