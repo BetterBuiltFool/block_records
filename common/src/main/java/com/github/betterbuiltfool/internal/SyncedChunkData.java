@@ -24,9 +24,9 @@ public class SyncedChunkData {
     public static final String TYPE_ID = BlockRecords.MOD_ID + ":type_id";
     public static final String POSITIONS_ID = BlockRecords.MOD_ID + ":positions";
     
-    private final Map<BlockPos, Map<BlockDataType<?>, BlockData>> spatialMap = new ConcurrentHashMap<>();
+    final Map<BlockPos, Map<BlockDataType<?>, BlockData>> spatialMap = new ConcurrentHashMap<>();
     
-    private final Map<BlockDataType<?>, Set<BlockPos>> typeMap = new Reference2ObjectOpenHashMap<>();
+    final Map<BlockDataType<?>, Set<BlockPos>> typeMap = new Reference2ObjectOpenHashMap<>();
     
     @SuppressWarnings("unchecked")
     public <T extends BlockData> @Nullable T get(BlockPos pos, BlockDataType<T> dataType) {
@@ -72,7 +72,7 @@ public class SyncedChunkData {
         
         typePositions.add(pos);
     }
-    private synchronized void set(
+    public synchronized void set(
             @NotNull List<BlockPos> posList,
             @NotNull BlockDataType<?> dataType,
             BlockData data
@@ -138,6 +138,9 @@ public class SyncedChunkData {
         
         dataMap.remove(dataType);
         typePositions.remove(pos);
+        if (typePositions.isEmpty()) {
+            typeMap.remove(dataType);
+        }
     }
     
     /**

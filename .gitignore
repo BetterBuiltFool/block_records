@@ -8,3 +8,6 @@
 /forge/.gradle/
 /forge/build/
 /forge/build/classes/java/main/
+/common/logs/latest.log
+/common/logs/
+/.idea/
