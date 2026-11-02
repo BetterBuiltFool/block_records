@@ -1,4 +1,4 @@
 package com.github.betterbuiltfool.records;
 
-public interface ClientSyncable extends Serializable{
+public non-sealed interface ClientSyncable extends Serializable{
 }

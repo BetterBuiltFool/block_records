@@ -1,4 +1,4 @@
 package com.github.betterbuiltfool.records;
 
-public interface PersistentData extends Serializable{
+public non-sealed interface PersistentData extends Serializable{
 }

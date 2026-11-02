@@ -1,4 +1,4 @@
 package com.github.betterbuiltfool.records;
 
-public interface EphemeralData extends BlockData{
+public non-sealed interface EphemeralData extends BlockData{
 }

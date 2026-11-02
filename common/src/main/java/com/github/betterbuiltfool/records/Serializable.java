@@ -2,7 +2,7 @@ package com.github.betterbuiltfool.records;
 
 import net.minecraft.nbt.CompoundTag;
 
-public interface Serializable extends BlockData{
+public sealed interface Serializable extends BlockData permits ClientSyncable, PersistentData {
     /**
      * Allows the record to be saved as NBT data.
      * Do not add the BlockDataType to the tag.
