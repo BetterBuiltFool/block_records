@@ -4,6 +4,8 @@ import com.github.betterbuiltfool.BootstrapRequiredTest;
 import com.github.betterbuiltfool.data.TestData;
 import com.github.betterbuiltfool.records.BlockDataType;
 import com.github.betterbuiltfool.registry.BlockRecordsRegistry;
+import com.mojang.serialization.Lifecycle;
+import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +21,7 @@ public class BlockDataPoolTest extends BootstrapRequiredTest {
     
     @BeforeEach
     void setUp() {
-        Registry<BlockDataType<?>> registry = BlockRecordsRegistry.DATA_TYPES;
+        Registry<BlockDataType<?>> registry = new MappedRegistry<>(BlockRecordsRegistry.BLOCK_DATA_TYPE_REGISTRY_KEY, Lifecycle.stable(), false);;
         TEST_DATA = new BlockDataType<>(TestData.class, TestData::deserialize);
         Registry.register(registry, TEST_ID, TEST_DATA);
     }

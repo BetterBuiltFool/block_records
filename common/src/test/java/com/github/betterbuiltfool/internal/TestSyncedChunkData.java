@@ -32,6 +32,7 @@ public class TestSyncedChunkData extends BootstrapRequiredTest {
         REGISTRY.freeze();
         
         chunkData = new SyncedChunkData();
+        BlockDataPool.clear();
     }
     
     @Test
