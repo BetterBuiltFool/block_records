@@ -1,16 +1,19 @@
-package com.github.betterbuiltfool.records;
+package com.github.betterbuiltfool.records.types;
 
+import com.github.betterbuiltfool.records.Serializable;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.function.Function;
 
-public class BlockDataType<T extends BlockData> {
-    private final Class<T> registeredDataClass;
+public final class SerializableDataType<T extends Serializable> extends BlockDataType<T>{
     private final Function<CompoundTag, T> deserializer;
     
-    public BlockDataType(Class<T> registeredDataClass, Function<CompoundTag, T> deserializer) {
-        this.registeredDataClass = registeredDataClass;
+    public SerializableDataType(
+            Class<T> registeredDataClass,
+            Function<CompoundTag, T> deserializer
+    ) {
+        super(registeredDataClass);
         this.deserializer = deserializer;
     }
     
@@ -22,10 +25,6 @@ public class BlockDataType<T extends BlockData> {
         CompoundTag tag = new CompoundTag();
         data.toNbt(tag);
         root.put(id.toString(), tag);
-    }
-    
-    public Class<T> getRegisteredType() {
-        return this.registeredDataClass;
     }
     
     public T deserialize(CompoundTag tag) {

@@ -1,10 +1,10 @@
 package com.github.betterbuiltfool.data;
 
 
-import com.github.betterbuiltfool.records.BlockData;
+import com.github.betterbuiltfool.records.PersistentData;
 import net.minecraft.nbt.CompoundTag;
 
-public record TestData(boolean isTrue) implements BlockData {
+public record TestData(boolean isTrue) implements PersistentData {
     
     @Override
     public void toNbt(CompoundTag dataTag) {

@@ -20,4 +20,8 @@ public class BlockDataPool {
         
         return (T) POOL.computeIfAbsent(data, key -> key);
     }
+    
+    static void clear() {
+        POOL.clear();
+    }
 }

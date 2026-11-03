@@ -2,8 +2,11 @@ package com.github.betterbuiltfool.internal;
 
 import com.github.betterbuiltfool.BlockRecords;
 import com.github.betterbuiltfool.records.BlockData;
-import com.github.betterbuiltfool.records.BlockDataType;
-import com.github.betterbuiltfool.records.ClientSyncableBlockData;
+import com.github.betterbuiltfool.records.PersistentData;
+import com.github.betterbuiltfool.records.types.BlockDataType;
+import com.github.betterbuiltfool.records.ClientSyncable;
+import com.github.betterbuiltfool.records.Serializable;
+import com.github.betterbuiltfool.records.types.SerializableDataType;
 import com.github.betterbuiltfool.registry.BlockRecordsRegistry;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
@@ -50,7 +53,7 @@ public class SyncedChunkData {
         
         setRaw(pos, dataType, data);
         
-        if (!(data instanceof ClientSyncableBlockData syncableData)) return;
+        if (!(data instanceof ClientSyncable syncableData)) return;
         sendUpdatePacket(syncableData, dataType, pos);
     }
     
@@ -83,12 +86,12 @@ public class SyncedChunkData {
             
             setRaw(pos, dataType, data);
         }
-        if (!(data instanceof ClientSyncableBlockData syncableData)) return;
+        if (!(data instanceof ClientSyncable syncableData)) return;
         sendUpdatePacket(syncableData, dataType, posList.toArray(BlockPos[]::new));
     }
     
     private void sendUpdatePacket(
-            ClientSyncableBlockData data,
+            ClientSyncable data,
             BlockDataType<?> dataType,
             BlockPos... array
     ) {
@@ -107,7 +110,7 @@ public class SyncedChunkData {
             BlockPos pos,
             BlockDataType<?> dataType
     ) {
-        if (!ClientSyncableBlockData.class.isAssignableFrom(dataType.getRegisteredType())) return;
+        if (!ClientSyncable.class.isAssignableFrom(dataType.getRegisteredType())) return;
     
     }
     
@@ -145,19 +148,21 @@ public class SyncedChunkData {
     
     /**
      * Converts the chunk data into serialized NBT
+     * Ephemeral data is ignored
      * @param root The root tag the chunk is being added to.
      */
     public void serialize(CompoundTag root) {
         ListTag chunkDataTag = new ListTag();
-        Map<BlockDataType<?>, Map<BlockData, List<BlockPos>>> uniqueRecords = collectUniqueRecords();
+        Map<SerializableDataType<?>, Map<PersistentData, List<BlockPos>>> uniqueRecords = collectUniqueRecords();
         for (var typeEntry:uniqueRecords.entrySet()) {
-            BlockDataType<?> dataType = typeEntry.getKey();
-            ResourceLocation id = BlockRecordsRegistry.DATA_TYPES.getKey(dataType);
+            SerializableDataType<?> dataType = typeEntry.getKey();
+            
+            ResourceLocation id = BlockRecordsRegistry.SERIALIZABLE_DATA_TYPES.getKey(dataType);
             
             if (id == null) continue;
             
             for (var dataEntry:typeEntry.getValue().entrySet()) {
-                BlockData uniqueRecord = dataEntry.getKey();
+                Serializable uniqueRecord = dataEntry.getKey();
                 List<BlockPos> posList = dataEntry.getValue();
                 CompoundTag metaData = new CompoundTag();
                 
@@ -183,16 +188,19 @@ public class SyncedChunkData {
     /**
      * Collapses the record data into a map with each unique record only appearing once, to save disk space.
      * The unique records will have a list of shared positions
+     * Only records tagged to be saved to disk will be included
      * @return A Map that contains the unique record instances with their positions, mapped to their type.
      */
-    private Map<BlockDataType<?>, Map<BlockData, List<BlockPos>>> collectUniqueRecords() {
-        Map<BlockDataType<?>, Map<BlockData, List<BlockPos>>> uniquesMap = new HashMap<>();
+    private Map<SerializableDataType<?>, Map<PersistentData, List<BlockPos>>> collectUniqueRecords() {
+        Map<SerializableDataType<?>, Map<PersistentData, List<BlockPos>>> uniquesMap = new HashMap<>();
         for (var entry:spatialMap.entrySet()) {
             var pos = entry.getKey();
             var typeMap = entry.getValue();
             for (var typeEntry:typeMap.entrySet()) {
-                Map<BlockData, List<BlockPos>> map = uniquesMap.computeIfAbsent(typeEntry.getKey(), key -> new HashMap<>());
-                List<BlockPos> posList = map.computeIfAbsent(typeEntry.getValue(), key -> new ArrayList<>());
+                if (!(typeEntry.getValue() instanceof PersistentData dataRecord)) continue;
+                if (!((typeEntry.getKey()) instanceof SerializableDataType<?> dataType)) continue;
+                Map<PersistentData, List<BlockPos>> map = uniquesMap.computeIfAbsent(dataType, key -> new HashMap<>());
+                List<BlockPos> posList = map.computeIfAbsent(dataRecord, key -> new ArrayList<>());
                 posList.add(pos);
             }
         }
@@ -201,7 +209,7 @@ public class SyncedChunkData {
     
     public static SyncedChunkData deserialize(CompoundTag root) {
         SyncedChunkData newChunkData = new SyncedChunkData();
-        Map<String, BlockDataType<?>> loadedTypes = new HashMap<>();
+        Map<String, SerializableDataType<?>> loadedTypes = new HashMap<>();
         if (!root.contains(CHUNK_DATA_ID)) return newChunkData;
         
         ListTag chunkDataTag = root.getList(CHUNK_DATA_ID, ListTag.TAG_COMPOUND);
@@ -212,7 +220,7 @@ public class SyncedChunkData {
             if (!compositeTag.contains("payload")) continue;
             
             CompoundTag metaData = compositeTag.getCompound("metadata");
-            BlockDataType<?> dataType = getDataType(metaData, loadedTypes);
+            SerializableDataType<?> dataType = getDataType(metaData, loadedTypes);
             if (dataType == null) continue;
             
             ListTag posListTag = metaData.getList(POSITIONS_ID, ListTag.TAG_COMPOUND);
@@ -238,9 +246,9 @@ public class SyncedChunkData {
         return posList;
     }
     
-    private static @Nullable BlockDataType<?> getDataType(
+    private static @Nullable SerializableDataType<?> getDataType(
             CompoundTag dataTag,
-            Map<String, BlockDataType<?>> loadedTypes
+            Map<String, SerializableDataType<?>> loadedTypes
     ) {
         if (!dataTag.contains(TYPE_ID)) return null;
         
@@ -249,7 +257,7 @@ public class SyncedChunkData {
             ResourceLocation type_location = ResourceLocation.tryParse(key);
             if (type_location == null) return null;
             
-            return BlockRecordsRegistry.DATA_TYPES.get(type_location);
+            return BlockRecordsRegistry.SERIALIZABLE_DATA_TYPES.get(type_location);
         });
     }
     

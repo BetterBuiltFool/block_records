@@ -2,11 +2,5 @@ package com.github.betterbuiltfool.records;
 
 import net.minecraft.nbt.CompoundTag;
 
-public interface BlockData {
-    /**
-     * Allows the record to be saved as NBT data.
-     * Do not add the BlockDataType to the tag.
-     * @param dataTag A tag for saving the data to.
-     */
-    void toNbt(CompoundTag dataTag);
+public sealed interface BlockData permits Serializable, EphemeralData{
 }
