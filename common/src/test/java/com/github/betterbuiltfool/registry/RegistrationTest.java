@@ -2,7 +2,7 @@ package com.github.betterbuiltfool.registry;
 
 import com.github.betterbuiltfool.BootstrapRequiredTest;
 import com.github.betterbuiltfool.data.TestData;
-import com.github.betterbuiltfool.records.BlockDataType;
+import com.github.betterbuiltfool.records.types.BlockDataType;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Test;

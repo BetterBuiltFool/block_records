@@ -1,6 +1,6 @@
 package com.github.betterbuiltfool.registry;
 
-import com.github.betterbuiltfool.records.BlockDataType;
+import com.github.betterbuiltfool.records.types.BlockDataType;
 import com.github.betterbuiltfool.BlockRecords;
 import com.mojang.serialization.Lifecycle;
 import net.minecraft.core.MappedRegistry;

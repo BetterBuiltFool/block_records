@@ -2,7 +2,7 @@ package com.github.betterbuiltfool.internal;
 
 import com.github.betterbuiltfool.BlockRecords;
 import com.github.betterbuiltfool.records.BlockData;
-import com.github.betterbuiltfool.records.BlockDataType;
+import com.github.betterbuiltfool.records.types.BlockDataType;
 import com.github.betterbuiltfool.records.ClientSyncable;
 import com.github.betterbuiltfool.records.Serializable;
 import com.github.betterbuiltfool.registry.BlockRecordsRegistry;

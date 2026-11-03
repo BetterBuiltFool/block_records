@@ -2,7 +2,7 @@ package com.github.betterbuiltfool.internal;
 
 import com.github.betterbuiltfool.BootstrapRequiredTest;
 import com.github.betterbuiltfool.data.TestData;
-import com.github.betterbuiltfool.records.BlockDataType;
+import com.github.betterbuiltfool.records.types.BlockDataType;
 import com.github.betterbuiltfool.registry.BlockRecordsRegistry;
 import com.mojang.serialization.Lifecycle;
 import net.minecraft.core.MappedRegistry;
