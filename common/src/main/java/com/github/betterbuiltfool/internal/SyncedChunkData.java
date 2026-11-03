@@ -2,6 +2,7 @@ package com.github.betterbuiltfool.internal;
 
 import com.github.betterbuiltfool.BlockRecords;
 import com.github.betterbuiltfool.records.BlockData;
+import com.github.betterbuiltfool.records.PersistentData;
 import com.github.betterbuiltfool.records.types.BlockDataType;
 import com.github.betterbuiltfool.records.ClientSyncable;
 import com.github.betterbuiltfool.records.Serializable;
@@ -152,7 +153,7 @@ public class SyncedChunkData {
      */
     public void serialize(CompoundTag root) {
         ListTag chunkDataTag = new ListTag();
-        Map<SerializableDataType<?>, Map<Serializable, List<BlockPos>>> uniqueRecords = collectUniqueRecords();
+        Map<SerializableDataType<?>, Map<PersistentData, List<BlockPos>>> uniqueRecords = collectUniqueRecords();
         for (var typeEntry:uniqueRecords.entrySet()) {
             SerializableDataType<?> dataType = typeEntry.getKey();
             
@@ -187,17 +188,18 @@ public class SyncedChunkData {
     /**
      * Collapses the record data into a map with each unique record only appearing once, to save disk space.
      * The unique records will have a list of shared positions
+     * Only records tagged to be saved to disk will be included
      * @return A Map that contains the unique record instances with their positions, mapped to their type.
      */
-    private Map<SerializableDataType<?>, Map<Serializable, List<BlockPos>>> collectUniqueRecords() {
-        Map<SerializableDataType<?>, Map<Serializable, List<BlockPos>>> uniquesMap = new HashMap<>();
+    private Map<SerializableDataType<?>, Map<PersistentData, List<BlockPos>>> collectUniqueRecords() {
+        Map<SerializableDataType<?>, Map<PersistentData, List<BlockPos>>> uniquesMap = new HashMap<>();
         for (var entry:spatialMap.entrySet()) {
             var pos = entry.getKey();
             var typeMap = entry.getValue();
             for (var typeEntry:typeMap.entrySet()) {
-                if (!(typeEntry.getValue() instanceof Serializable dataRecord)) continue;
+                if (!(typeEntry.getValue() instanceof PersistentData dataRecord)) continue;
                 if (!((typeEntry.getKey()) instanceof SerializableDataType<?> dataType)) continue;
-                Map<Serializable, List<BlockPos>> map = uniquesMap.computeIfAbsent(dataType, key -> new HashMap<>());
+                Map<PersistentData, List<BlockPos>> map = uniquesMap.computeIfAbsent(dataType, key -> new HashMap<>());
                 List<BlockPos> posList = map.computeIfAbsent(dataRecord, key -> new ArrayList<>());
                 posList.add(pos);
             }
