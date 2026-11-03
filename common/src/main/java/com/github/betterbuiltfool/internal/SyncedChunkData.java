@@ -147,13 +147,14 @@ public class SyncedChunkData {
     
     /**
      * Converts the chunk data into serialized NBT
+     * Ephemeral data is ignored
      * @param root The root tag the chunk is being added to.
      */
     public void serialize(CompoundTag root) {
         ListTag chunkDataTag = new ListTag();
-        Map<BlockDataType<?>, Map<Serializable, List<BlockPos>>> uniqueRecords = collectUniqueRecords();
+        Map<SerializableDataType<?>, Map<Serializable, List<BlockPos>>> uniqueRecords = collectUniqueRecords();
         for (var typeEntry:uniqueRecords.entrySet()) {
-            if (!(typeEntry.getKey() instanceof SerializableDataType<?> dataType)) continue;
+            SerializableDataType<?> dataType = typeEntry.getKey();
             
             ResourceLocation id = BlockRecordsRegistry.SERIALIZABLE_DATA_TYPES.getKey(dataType);
             
@@ -188,14 +189,15 @@ public class SyncedChunkData {
      * The unique records will have a list of shared positions
      * @return A Map that contains the unique record instances with their positions, mapped to their type.
      */
-    private Map<BlockDataType<?>, Map<Serializable, List<BlockPos>>> collectUniqueRecords() {
-        Map<BlockDataType<?>, Map<Serializable, List<BlockPos>>> uniquesMap = new HashMap<>();
+    private Map<SerializableDataType<?>, Map<Serializable, List<BlockPos>>> collectUniqueRecords() {
+        Map<SerializableDataType<?>, Map<Serializable, List<BlockPos>>> uniquesMap = new HashMap<>();
         for (var entry:spatialMap.entrySet()) {
             var pos = entry.getKey();
             var typeMap = entry.getValue();
             for (var typeEntry:typeMap.entrySet()) {
                 if (!(typeEntry.getValue() instanceof Serializable dataRecord)) continue;
-                Map<Serializable, List<BlockPos>> map = uniquesMap.computeIfAbsent(typeEntry.getKey(), key -> new HashMap<>());
+                if (!((typeEntry.getKey()) instanceof SerializableDataType<?> dataType)) continue;
+                Map<Serializable, List<BlockPos>> map = uniquesMap.computeIfAbsent(dataType, key -> new HashMap<>());
                 List<BlockPos> posList = map.computeIfAbsent(dataRecord, key -> new ArrayList<>());
                 posList.add(pos);
             }
