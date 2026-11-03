@@ -153,8 +153,9 @@ public class SyncedChunkData {
         ListTag chunkDataTag = new ListTag();
         Map<BlockDataType<?>, Map<Serializable, List<BlockPos>>> uniqueRecords = collectUniqueRecords();
         for (var typeEntry:uniqueRecords.entrySet()) {
-            BlockDataType<?> dataType = typeEntry.getKey();
-            ResourceLocation id = BlockRecordsRegistry.DATA_TYPES.getKey(dataType);
+            if (!(typeEntry.getKey() instanceof SerializableDataType<?> dataType)) continue;
+            
+            ResourceLocation id = BlockRecordsRegistry.SERIALIZABLE_DATA_TYPES.getKey(dataType);
             
             if (id == null) continue;
             
@@ -252,7 +253,7 @@ public class SyncedChunkData {
             ResourceLocation type_location = ResourceLocation.tryParse(key);
             if (type_location == null) return null;
             
-            return BlockRecordsRegistry.DATA_TYPES.get(type_location);
+            return BlockRecordsRegistry.SERIALIZABLE_DATA_TYPES.get(type_location);
         });
     }
     
