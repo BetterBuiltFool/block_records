@@ -5,6 +5,7 @@ import com.github.betterbuiltfool.records.BlockData;
 import com.github.betterbuiltfool.records.types.BlockDataType;
 import com.github.betterbuiltfool.records.ClientSyncable;
 import com.github.betterbuiltfool.records.Serializable;
+import com.github.betterbuiltfool.records.types.SerializableDataType;
 import com.github.betterbuiltfool.registry.BlockRecordsRegistry;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
@@ -203,7 +204,7 @@ public class SyncedChunkData {
     
     public static SyncedChunkData deserialize(CompoundTag root) {
         SyncedChunkData newChunkData = new SyncedChunkData();
-        Map<String, BlockDataType<?>> loadedTypes = new HashMap<>();
+        Map<String, SerializableDataType<?>> loadedTypes = new HashMap<>();
         if (!root.contains(CHUNK_DATA_ID)) return newChunkData;
         
         ListTag chunkDataTag = root.getList(CHUNK_DATA_ID, ListTag.TAG_COMPOUND);
@@ -214,7 +215,7 @@ public class SyncedChunkData {
             if (!compositeTag.contains("payload")) continue;
             
             CompoundTag metaData = compositeTag.getCompound("metadata");
-            BlockDataType<?> dataType = getDataType(metaData, loadedTypes);
+            SerializableDataType<?> dataType = getDataType(metaData, loadedTypes);
             if (dataType == null) continue;
             
             ListTag posListTag = metaData.getList(POSITIONS_ID, ListTag.TAG_COMPOUND);
@@ -240,9 +241,9 @@ public class SyncedChunkData {
         return posList;
     }
     
-    private static @Nullable BlockDataType<?> getDataType(
+    private static @Nullable SerializableDataType<?> getDataType(
             CompoundTag dataTag,
-            Map<String, BlockDataType<?>> loadedTypes
+            Map<String, SerializableDataType<?>> loadedTypes
     ) {
         if (!dataTag.contains(TYPE_ID)) return null;
         
