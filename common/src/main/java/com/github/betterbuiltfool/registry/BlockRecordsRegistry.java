@@ -9,6 +9,7 @@ import com.github.betterbuiltfool.records.types.SerializableDataType;
 import com.mojang.serialization.Lifecycle;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 
@@ -46,5 +47,13 @@ public class BlockRecordsRegistry {
     ) {
         Registry.register(DATA_TYPES, id, type);
         return type;
+    }
+    
+    public static void init() {
+        @SuppressWarnings("unchecked")
+        Registry<Registry<?>> rootRegistry = (Registry<Registry<?>>) BuiltInRegistries.REGISTRY;
+        
+        Registry.register(rootRegistry, BLOCK_DATA_TYPE_REGISTRY_KEY.location(), DATA_TYPES);
+        Registry.register(rootRegistry, SERIALIZABLE_DATA_TYPE_REGISTRY_KEY.location(), SERIALIZABLE_DATA_TYPES);
     }
 }
