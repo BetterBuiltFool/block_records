@@ -24,6 +24,8 @@ public class BlockDataPoolTest extends BootstrapRequiredTest {
         Registry<BlockDataType<?>> registry = new MappedRegistry<>(BlockRecordsRegistry.BLOCK_DATA_TYPE_REGISTRY_KEY, Lifecycle.stable(), false);;
         TEST_DATA = new BlockDataType<>(TestData.class, TestData::deserialize);
         Registry.register(registry, TEST_ID, TEST_DATA);
+        
+        BlockDataPool.clear();
     }
     
     @Test
