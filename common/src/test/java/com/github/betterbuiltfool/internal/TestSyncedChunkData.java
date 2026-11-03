@@ -3,6 +3,7 @@ package com.github.betterbuiltfool.internal;
 import com.github.betterbuiltfool.BootstrapRequiredTest;
 import com.github.betterbuiltfool.data.TestData;
 import com.github.betterbuiltfool.records.types.BlockDataType;
+import com.github.betterbuiltfool.records.types.SerializableDataType;
 import com.github.betterbuiltfool.registry.BlockRecordsRegistry;
 import com.mojang.serialization.Lifecycle;
 import net.minecraft.core.BlockPos;
@@ -19,15 +20,15 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestSyncedChunkData extends BootstrapRequiredTest {
-    public static Registry<BlockDataType<?>> REGISTRY;
-    public static BlockDataType<TestData> testDataBlockDataType;
+    public static Registry<SerializableDataType<?>> REGISTRY;
+    public static SerializableDataType<TestData> testDataBlockDataType;
     public static final ResourceLocation testLocation = new ResourceLocation("testmod", "test_data");
     public static SyncedChunkData chunkData;
     
     @BeforeEach
     void setUp() {
-        REGISTRY = new MappedRegistry<>(BlockRecordsRegistry.BLOCK_DATA_TYPE_REGISTRY_KEY, Lifecycle.stable(), false);
-        testDataBlockDataType = Registry.register(REGISTRY, testLocation, new BlockDataType<>(TestData.class, TestData::deserialize));
+        REGISTRY = new MappedRegistry<>(BlockRecordsRegistry.SERIALIZABLE_DATA_TYPE_REGISTRY_KEY, Lifecycle.stable(), false);
+        testDataBlockDataType = BlockDataType.create(TestData.class, TestData::deserialize);
         
         REGISTRY.freeze();
         
