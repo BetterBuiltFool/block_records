@@ -9,8 +9,6 @@ import dev.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.Level;
 
-import java.util.function.Supplier;
-
 public class ClientPacketHandler {
     public static void handleSyncPacket(FriendlyByteBuf buffer, NetworkManager.PacketContext context) {
         S2CDataSyncPacket payload = S2CDataSyncPacket.read(buffer);
