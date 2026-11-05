@@ -1,6 +1,7 @@
 package com.github.betterbuiltfool.internal;
 
 import com.github.betterbuiltfool.BlockRecords;
+import com.github.betterbuiltfool.internal.network.payload.S2CDataSyncPacket;
 import com.github.betterbuiltfool.records.BlockData;
 import com.github.betterbuiltfool.records.PersistentData;
 import com.github.betterbuiltfool.records.types.BlockDataType;
@@ -96,6 +97,24 @@ public class SyncedChunkData {
             BlockPos... array
     ) {
         // Send a packet to the client with the data
+    }
+    
+    public void receiveSyncPacket(S2CDataSyncPacket payload) {
+        ResourceLocation typeID = payload.typeID();
+        List<BlockPos> posList = payload.posList();
+        CompoundTag dataTag = payload.dataTag();
+        
+        SerializableDataType<?> dataType = BlockRecordsRegistry.SERIALIZABLE_DATA_TYPES.get(typeID);
+        if (dataType == null) {
+            BlockRecords.LOGGER.error("Received packet with unregistered type {}", typeID);
+            return;
+        }
+        
+        BlockData data = BlockDataPool.intern(dataType.deserialize(dataTag));
+        
+        for (BlockPos pos:posList) {
+            setRaw(pos, dataType, data);
+        }
     }
     
     public synchronized void clear(BlockPos pos, BlockDataType<?> dataType) {
