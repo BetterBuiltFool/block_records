@@ -1,5 +1,6 @@
 package com.github.betterbuiltfool;
 
+import com.github.betterbuiltfool.internal.network.BlockRecordsNetwork;
 import com.github.betterbuiltfool.registry.BlockRecordsRegistry;
 
 public final class BlockRecords {
@@ -7,5 +8,6 @@ public final class BlockRecords {
 
     public static void init() {
         BlockRecordsRegistry.init();
+        BlockRecordsNetwork.init();
     }
 }
