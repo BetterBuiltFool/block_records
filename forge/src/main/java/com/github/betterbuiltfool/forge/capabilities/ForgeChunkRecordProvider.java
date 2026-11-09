@@ -32,11 +32,15 @@ public class ForgeChunkRecordProvider implements ICapabilitySerializable<Compoun
     
     @Override
     public void deserializeNBT(CompoundTag arg) {
-        commonStorage = SyncedChunkData.deserialize(arg);
-        this.holder = LazyOptional.of(() -> this.commonStorage);
+        setCommonStorage(SyncedChunkData.deserialize(arg));
     }
     
     public void invalidate() {
         this.holder.invalidate();
+    }
+    
+    private void setCommonStorage(SyncedChunkData commonStorage) {
+        this.commonStorage = commonStorage;
+        this.holder = LazyOptional.of(() -> commonStorage);
     }
 }
