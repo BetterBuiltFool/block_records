@@ -16,10 +16,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.github.betterbuiltfool.fabric.ExampleModFabric"
+      "com.github.betterbuiltfool.fabric.BlockRecordsFabric"
     ],
     "client": [
-      "com.github.betterbuiltfool.fabric.client.ExampleModFabricClient"
+      "com.github.betterbuiltfool.fabric.client.BlockRecordsFabricClient"
     ]
   },
   "mixins": [
