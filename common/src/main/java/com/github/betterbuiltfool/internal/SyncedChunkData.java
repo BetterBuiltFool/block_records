@@ -1,7 +1,7 @@
 package com.github.betterbuiltfool.internal;
 
 import com.github.betterbuiltfool.BlockRecords;
-import com.github.betterbuiltfool.internal.network.payload.S2CDataSyncPacket;
+import com.github.betterbuiltfool.internal.network.payload.DataSync;
 import com.github.betterbuiltfool.records.BlockData;
 import com.github.betterbuiltfool.records.PersistentData;
 import com.github.betterbuiltfool.records.types.BlockDataType;
@@ -99,7 +99,7 @@ public class SyncedChunkData {
         // Send a packet to the client with the data
     }
     
-    public void receiveSyncPacket(S2CDataSyncPacket payload) {
+    public void receiveSyncPacket(DataSync payload) {
         ResourceLocation typeID = payload.typeID();
         List<BlockPos> posList = payload.posList();
         CompoundTag dataTag = payload.dataTag();

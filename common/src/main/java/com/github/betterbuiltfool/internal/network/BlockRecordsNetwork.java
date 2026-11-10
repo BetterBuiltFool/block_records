@@ -2,7 +2,7 @@ package com.github.betterbuiltfool.internal.network;
 
 import com.github.betterbuiltfool.BlockRecords;
 import com.github.betterbuiltfool.internal.network.handler.ClientPacketHandler;
-import com.github.betterbuiltfool.internal.network.payload.S2CDataSyncPacket;
+import com.github.betterbuiltfool.internal.network.payload.DataSync;
 import dev.architectury.networking.NetworkChannel;
 import net.minecraft.resources.ResourceLocation;
 
@@ -12,9 +12,9 @@ public class BlockRecordsNetwork {
     );
     public static void init() {
         CHANNEL.register(
-                S2CDataSyncPacket.class,
-                S2CDataSyncPacket::write,
-                S2CDataSyncPacket::read,
+                DataSync.class,
+                DataSync::write,
+                DataSync::read,
                 ClientPacketHandler::handleSyncPacket
         );
     }

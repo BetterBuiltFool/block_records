@@ -2,7 +2,7 @@ package com.github.betterbuiltfool.internal.network.handler;
 
 import com.github.betterbuiltfool.BlockRecords;
 import com.github.betterbuiltfool.internal.SyncedChunkData;
-import com.github.betterbuiltfool.internal.network.payload.S2CDataSyncPacket;
+import com.github.betterbuiltfool.internal.network.payload.DataSync;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class ClientPacketHandler {
-    public static void handleSyncPacket(S2CDataSyncPacket payload, Supplier<NetworkManager.PacketContext> contextSupplier) {
+    public static void handleSyncPacket(DataSync payload, Supplier<NetworkManager.PacketContext> contextSupplier) {
         NetworkManager.PacketContext context = contextSupplier.get();
         
         context.queue(() -> {
