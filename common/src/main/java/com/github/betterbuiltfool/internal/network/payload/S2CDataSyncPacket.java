@@ -6,10 +6,11 @@ import net.minecraft.network.FriendlyByteBuf;import net.minecraft.resources.Reso
 
 import java.util.ArrayList;import java.util.List;
 
-public record S2CDataSyncPacket(ResourceLocation typeID, CompoundTag dataTag, List<BlockPos> posList) {
+public record S2CDataSyncPacket(ResourceLocation typeID, CompoundTag dataTag, List<BlockPos> posList) implements S2CPacket<S2CDataSyncPacket> {
     
     public static final ResourceLocation ID = new ResourceLocation(BlockRecords.MOD_ID, "s2c_sync_position_data");
     
+    @Override
     public void write(FriendlyByteBuf buffer) {
         buffer.writeResourceLocation(typeID);
         buffer.writeNbt(dataTag);
@@ -18,6 +19,11 @@ public record S2CDataSyncPacket(ResourceLocation typeID, CompoundTag dataTag, Li
         for (var pos:posList) {
             buffer.writeBlockPos(pos);
         }
+    }
+    
+    @Override
+    public ResourceLocation getID() {
+        return ID;
     }
     
     public static S2CDataSyncPacket read(FriendlyByteBuf buffer) {
