@@ -1,6 +1,7 @@
 package com.github.betterbuiltfool.internal;
 
 import com.github.betterbuiltfool.BlockRecords;
+import com.github.betterbuiltfool.internal.network.payload.DataClear;
 import com.github.betterbuiltfool.internal.network.payload.DataSync;
 import com.github.betterbuiltfool.records.BlockData;
 import com.github.betterbuiltfool.records.PersistentData;
@@ -106,7 +107,7 @@ public class SyncedChunkData {
         
         SerializableDataType<?> dataType = BlockRecordsRegistry.SERIALIZABLE_DATA_TYPES.get(typeID);
         if (dataType == null) {
-            BlockRecords.LOGGER.error("Received packet with unregistered type {}", typeID);
+            warnUnregisteredType(typeID);
             return;
         }
         
@@ -115,6 +116,10 @@ public class SyncedChunkData {
         for (BlockPos pos:posList) {
             setRaw(pos, dataType, data);
         }
+    }
+    
+    private static void warnUnregisteredType(ResourceLocation typeID) {
+        BlockRecords.LOGGER.error("Received packet with unregistered type {}", typeID);
     }
     
     public synchronized void clear(BlockPos pos, BlockDataType<?> dataType) {
@@ -131,6 +136,23 @@ public class SyncedChunkData {
     ) {
         if (!ClientSyncable.class.isAssignableFrom(dataType.getRegisteredType())) return;
     
+    }
+    
+    public void receiveClearPacket(DataClear payload) {
+        ResourceLocation typeID = payload.typeID();
+        List<BlockPos> posList = payload.posList();
+        
+        SerializableDataType<?> dataType = BlockRecordsRegistry.SERIALIZABLE_DATA_TYPES.get(typeID);
+        if (dataType == null) {
+            warnUnregisteredType(typeID);
+            return;
+        }
+        for (BlockPos pos:posList) {
+            var dataMap = spatialMap.get(pos);
+            if (dataMap == null) return;
+            
+            purgeOldData(pos, dataType, dataMap);
+        }
     }
     
     public synchronized <T extends BlockData> void collectPositionsForType(
@@ -279,5 +301,4 @@ public class SyncedChunkData {
             return BlockRecordsRegistry.SERIALIZABLE_DATA_TYPES.get(type_location);
         });
     }
-    
 }

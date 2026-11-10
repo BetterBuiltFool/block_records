@@ -1,6 +1,6 @@
 package com.github.betterbuiltfool.internal.network.dispatch;
 
-import com.github.betterbuiltfool.internal.network.payload.S2CDataSyncPacket;
+import com.github.betterbuiltfool.internal.network.payload.DataClear;
 import com.github.betterbuiltfool.internal.network.payload.DataSync;
 import com.github.betterbuiltfool.records.ClientSyncable;
 import com.github.betterbuiltfool.records.types.SerializableDataType;
@@ -30,5 +30,18 @@ public class ClientboundDispatcher {
         FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
         payload.write(buffer);
         NetworkManager.sendToPlayer( player, payload.getID(), buffer);
+    }
+    
+    public static void dispatchClearPacket(
+            SerializableDataType<?> dataType,
+            ServerPlayer player,
+            BlockPos... positions
+    ) {
+        ResourceLocation typeID = BlockRecordsRegistry.SERIALIZABLE_DATA_TYPES.getKey(dataType);
+        if (typeID == null) return;
+        DataClear payload = new DataClear(typeID, List.of(positions));
+        FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+        payload.write(buffer);
+        NetworkManager.sendToPlayer(player, payload.getID(), buffer);
     }
 }
