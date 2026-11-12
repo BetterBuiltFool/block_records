@@ -64,4 +64,8 @@ public final class BlockRecords {
         LevelChunk chunk = level.getChunkAt(pos);
         return fetcherStrategy.getSyncedData(chunk);
     }
+    
+    public static SyncedChunkData getSyncedChunkData(LevelChunk chunk) {
+        return fetcherStrategy.getSyncedData(chunk);
+    }
 }
