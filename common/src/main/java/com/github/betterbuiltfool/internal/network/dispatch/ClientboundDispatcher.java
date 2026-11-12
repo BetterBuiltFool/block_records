@@ -1,5 +1,7 @@
 package com.github.betterbuiltfool.internal.network.dispatch;
 
+import com.github.betterbuiltfool.BlockRecords;
+import com.github.betterbuiltfool.internal.SyncedChunkData;
 import com.github.betterbuiltfool.internal.network.payload.DataClear;
 import com.github.betterbuiltfool.internal.network.payload.DataSync;
 import com.github.betterbuiltfool.records.ClientSyncable;
@@ -12,6 +14,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 import java.util.List;
 
@@ -43,5 +46,13 @@ public class ClientboundDispatcher {
         FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
         payload.write(buffer);
         NetworkManager.sendToPlayer(player, payload.getID(), buffer);
+    }
+    
+    public static void syncChunk(
+            LevelChunk chunk,
+            ServerPlayer player
+    ) {
+        SyncedChunkData storage = BlockRecords.getSyncedChunkData(chunk);
+        storage.sendUpdatePackets(player);
     }
 }
