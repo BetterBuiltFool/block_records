@@ -20,7 +20,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.ChunkPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -117,6 +116,19 @@ public class SyncedChunkData {
         
         for (var player:players) {
             ClientboundDispatcher.dispatchSyncPacket(data, dataType, player, array);
+        }
+    }
+    
+    public void sendUpdatePackets(
+            ServerPlayer player
+    ) {
+        for (var entry: collectSyncableData().entrySet()) {
+            SerializableDataType<?> dataType = entry.getKey();
+            for (var value : entry.getValue().entrySet()) {
+                ClientSyncable data = value.getKey();
+                List<BlockPos> posList = value.getValue();
+                ClientboundDispatcher.dispatchSyncPacket(data, dataType, player, posList.toArray(BlockPos[]::new));
+            }
         }
     }
     
@@ -261,6 +273,22 @@ public class SyncedChunkData {
             }
         }
         root.put(CHUNK_DATA_ID, chunkDataTag);
+    }
+    
+    private Map<SerializableDataType<?>, Map<ClientSyncable, List<BlockPos>>> collectSyncableData() {
+        Map<SerializableDataType<?>, Map<ClientSyncable, List<BlockPos>>> syncablesMap = new HashMap<>();
+        for (var entry:spatialMap.entrySet()) {
+            var pos = entry.getKey();
+            var typeMap = entry.getValue();
+            for (var typeEntry:typeMap.entrySet()) {
+                if (!(typeEntry.getValue() instanceof ClientSyncable dataRecord)) continue;
+                if (!((typeEntry.getKey()) instanceof SerializableDataType<?> dataType)) continue;
+                Map<ClientSyncable, List<BlockPos>> map = syncablesMap.computeIfAbsent(dataType, key -> new HashMap<>());
+                List<BlockPos> posList = map.computeIfAbsent(dataRecord, key -> new ArrayList<>());
+                posList.add(pos);
+            }
+        }
+        return syncablesMap;
     }
     
     /**
