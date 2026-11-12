@@ -1,6 +1,7 @@
 package com.github.betterbuiltfool.internal;
 
 import com.github.betterbuiltfool.BlockRecords;
+import com.github.betterbuiltfool.internal.network.dispatch.ClientboundDispatcher;
 import com.github.betterbuiltfool.internal.network.payload.DataClear;
 import com.github.betterbuiltfool.internal.network.payload.DataSync;
 import com.github.betterbuiltfool.records.BlockData;
@@ -17,6 +18,9 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.ChunkPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +32,9 @@ public class SyncedChunkData {
     public static final String CHUNK_DATA_ID = BlockRecords.MOD_ID + ":chunk_data";
     public static final String TYPE_ID = BlockRecords.MOD_ID + ":type_id";
     public static final String POSITIONS_ID = BlockRecords.MOD_ID + ":positions";
+    
+    @Nullable
+    private transient ServerLevel level;
     
     final Map<BlockPos, Map<BlockDataType<?>, BlockData>> spatialMap = new ConcurrentHashMap<>();
     
@@ -56,7 +63,8 @@ public class SyncedChunkData {
         setRaw(pos, dataType, data);
         
         if (!(data instanceof ClientSyncable syncableData)) return;
-        sendUpdatePacket(syncableData, dataType, pos);
+        if (!(dataType instanceof SerializableDataType<?> serialType)) return;
+        sendUpdatePacket(syncableData, serialType, pos);
     }
     
     @SuppressWarnings("unchecked")
@@ -89,15 +97,27 @@ public class SyncedChunkData {
             setRaw(pos, dataType, data);
         }
         if (!(data instanceof ClientSyncable syncableData)) return;
-        sendUpdatePacket(syncableData, dataType, posList.toArray(BlockPos[]::new));
+        if (!(dataType instanceof SerializableDataType<?> serialType)) return;
+        sendUpdatePacket(syncableData, serialType, posList.toArray(BlockPos[]::new));
     }
     
     private void sendUpdatePacket(
             ClientSyncable data,
-            BlockDataType<?> dataType,
+            SerializableDataType<?> dataType,
             BlockPos... array
     ) {
-        // Send a packet to the client with the data
+        if (this.level == null) return;
+        
+        if (array.length == 0) {
+            BlockRecords.LOGGER.error("Cannot send data sync for zero positions");
+            return;
+        }
+        
+        List<ServerPlayer> players = level.players();
+        
+        for (var player:players) {
+            ClientboundDispatcher.dispatchSyncPacket(data, dataType, player, array);
+        }
     }
     
     public void receiveSyncPacket(DataSync payload) {
@@ -127,14 +147,21 @@ public class SyncedChunkData {
         if (dataMap == null) return;
         
         purgeOldData(pos, dataType, dataMap);
-        sendClearPacket(pos, dataType);
+        if (!(dataType instanceof SerializableDataType<?> serialType)) return;
+        sendClearPacket(pos, serialType);
     }
     
     private void sendClearPacket(
             BlockPos pos,
-            BlockDataType<?> dataType
+            SerializableDataType<?> dataType
     ) {
-        if (!ClientSyncable.class.isAssignableFrom(dataType.getRegisteredType())) return;
+        if (this.level == null) return;
+        
+        List<ServerPlayer> players = level.players();
+        
+        for (var player:players) {
+            ClientboundDispatcher.dispatchClearPacket(dataType, player, pos);
+        }
     
     }
     
@@ -168,6 +195,16 @@ public class SyncedChunkData {
             outMap.put(pos, data);
         }
         
+    }
+    
+    public void setServerLevel(ServerLevel level) {
+        this.level = level;
+    }
+    
+    public void clearServerLevel(ServerLevel level) {
+        if (this.level == level) {
+            this.level = null;
+        }
     }
     
     private void purgeOldData(@NotNull BlockPos pos,

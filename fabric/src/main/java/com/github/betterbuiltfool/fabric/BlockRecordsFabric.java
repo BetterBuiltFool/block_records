@@ -1,10 +1,10 @@
 package com.github.betterbuiltfool.fabric;
 
-import com.github.betterbuiltfool.fabric.components.FabricChunkComponentWrapper;
 import com.github.betterbuiltfool.fabric.components.FabricComponentRegistry;
 import net.fabricmc.api.ModInitializer;
 
 import com.github.betterbuiltfool.BlockRecords;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 
 public final class BlockRecordsFabric implements ModInitializer {
     @Override
@@ -13,6 +13,12 @@ public final class BlockRecordsFabric implements ModInitializer {
         // However, some things (like resources) may still be uninitialized.
         // Proceed with mild caution.
         BlockRecords.setFetcherStrategy(chunk -> FabricComponentRegistry.CHUNK_DATA_KEY.get(chunk).getCommonStorage());
+        ServerChunkEvents.CHUNK_LOAD.register(((world, chunk) -> {
+            FabricComponentRegistry.CHUNK_DATA_KEY.get(chunk).getCommonStorage().setServerLevel(world);
+        }));
+        ServerChunkEvents.CHUNK_UNLOAD.register(((world, chunk) -> {
+            FabricComponentRegistry.CHUNK_DATA_KEY.get(chunk).getCommonStorage().clearServerLevel(world);
+        }));
 
         // Run our common setup.
         BlockRecords.init();
