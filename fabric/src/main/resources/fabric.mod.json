@@ -22,6 +22,11 @@
       "com.github.betterbuiltfool.fabric.client.BlockRecordsFabricClient"
     ]
   },
+  "custom": {
+    "cardinal-components": [
+      "block_records:chunk_data"
+    ]
+  },
   "mixins": [
     "block_records.mixins.json"
   ],
