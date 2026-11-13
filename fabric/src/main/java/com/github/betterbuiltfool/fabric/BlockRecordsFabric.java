@@ -16,9 +16,6 @@ public final class BlockRecordsFabric implements ModInitializer {
         ServerChunkEvents.CHUNK_LOAD.register(((world, chunk) -> {
             FabricComponentRegistry.CHUNK_DATA_KEY.get(chunk).getCommonStorage().setServerLevel(world);
         }));
-        ServerChunkEvents.CHUNK_UNLOAD.register(((world, chunk) -> {
-            FabricComponentRegistry.CHUNK_DATA_KEY.get(chunk).getCommonStorage().clearServerLevel(world);
-        }));
 
         // Run our common setup.
         BlockRecords.init();
