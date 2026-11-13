@@ -1,7 +1,9 @@
 package com.github.betterbuiltfool.internal;
 
 import com.github.betterbuiltfool.BlockRecords;
-import com.github.betterbuiltfool.internal.network.payload.S2CDataSyncPacket;
+import com.github.betterbuiltfool.internal.network.dispatch.ClientboundDispatcher;
+import com.github.betterbuiltfool.internal.network.payload.DataClear;
+import com.github.betterbuiltfool.internal.network.payload.DataSync;
 import com.github.betterbuiltfool.records.BlockData;
 import com.github.betterbuiltfool.records.PersistentData;
 import com.github.betterbuiltfool.records.types.BlockDataType;
@@ -16,6 +18,8 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,6 +31,9 @@ public class SyncedChunkData {
     public static final String CHUNK_DATA_ID = BlockRecords.MOD_ID + ":chunk_data";
     public static final String TYPE_ID = BlockRecords.MOD_ID + ":type_id";
     public static final String POSITIONS_ID = BlockRecords.MOD_ID + ":positions";
+    
+    @Nullable
+    private transient ServerLevel level;
     
     final Map<BlockPos, Map<BlockDataType<?>, BlockData>> spatialMap = new ConcurrentHashMap<>();
     
@@ -55,7 +62,8 @@ public class SyncedChunkData {
         setRaw(pos, dataType, data);
         
         if (!(data instanceof ClientSyncable syncableData)) return;
-        sendUpdatePacket(syncableData, dataType, pos);
+        if (!(dataType instanceof SerializableDataType<?> serialType)) return;
+        sendUpdatePacket(syncableData, serialType, pos);
     }
     
     @SuppressWarnings("unchecked")
@@ -88,25 +96,50 @@ public class SyncedChunkData {
             setRaw(pos, dataType, data);
         }
         if (!(data instanceof ClientSyncable syncableData)) return;
-        sendUpdatePacket(syncableData, dataType, posList.toArray(BlockPos[]::new));
+        if (!(dataType instanceof SerializableDataType<?> serialType)) return;
+        sendUpdatePacket(syncableData, serialType, posList.toArray(BlockPos[]::new));
     }
     
     private void sendUpdatePacket(
             ClientSyncable data,
-            BlockDataType<?> dataType,
+            SerializableDataType<?> dataType,
             BlockPos... array
     ) {
-        // Send a packet to the client with the data
+        if (this.level == null) return;
+        
+        if (array.length == 0) {
+            BlockRecords.LOGGER.error("Cannot send data sync for zero positions");
+            return;
+        }
+        
+        List<ServerPlayer> players = level.players();
+        
+        for (var player:players) {
+            ClientboundDispatcher.dispatchSyncPacket(data, dataType, player, array);
+        }
     }
     
-    public void receiveSyncPacket(S2CDataSyncPacket payload) {
+    public void sendUpdatePackets(
+            ServerPlayer player
+    ) {
+        for (var entry: collectSyncableData().entrySet()) {
+            SerializableDataType<?> dataType = entry.getKey();
+            for (var value : entry.getValue().entrySet()) {
+                ClientSyncable data = value.getKey();
+                List<BlockPos> posList = value.getValue();
+                ClientboundDispatcher.dispatchSyncPacket(data, dataType, player, posList.toArray(BlockPos[]::new));
+            }
+        }
+    }
+    
+    public void receiveSyncPacket(DataSync payload) {
         ResourceLocation typeID = payload.typeID();
         List<BlockPos> posList = payload.posList();
         CompoundTag dataTag = payload.dataTag();
         
         SerializableDataType<?> dataType = BlockRecordsRegistry.SERIALIZABLE_DATA_TYPES.get(typeID);
         if (dataType == null) {
-            BlockRecords.LOGGER.error("Received packet with unregistered type {}", typeID);
+            warnUnregisteredType(typeID);
             return;
         }
         
@@ -117,20 +150,48 @@ public class SyncedChunkData {
         }
     }
     
+    private static void warnUnregisteredType(ResourceLocation typeID) {
+        BlockRecords.LOGGER.error("Received packet with unregistered type {}", typeID);
+    }
+    
     public synchronized void clear(BlockPos pos, BlockDataType<?> dataType) {
         var dataMap = spatialMap.get(pos);
         if (dataMap == null) return;
         
         purgeOldData(pos, dataType, dataMap);
-        sendClearPacket(pos, dataType);
+        if (!(dataType instanceof SerializableDataType<?> serialType)) return;
+        sendClearPacket(pos, serialType);
     }
     
     private void sendClearPacket(
             BlockPos pos,
-            BlockDataType<?> dataType
+            SerializableDataType<?> dataType
     ) {
-        if (!ClientSyncable.class.isAssignableFrom(dataType.getRegisteredType())) return;
+        if (this.level == null) return;
+        
+        List<ServerPlayer> players = level.players();
+        
+        for (var player:players) {
+            ClientboundDispatcher.dispatchClearPacket(dataType, player, pos);
+        }
     
+    }
+    
+    public void receiveClearPacket(DataClear payload) {
+        ResourceLocation typeID = payload.typeID();
+        List<BlockPos> posList = payload.posList();
+        
+        SerializableDataType<?> dataType = BlockRecordsRegistry.SERIALIZABLE_DATA_TYPES.get(typeID);
+        if (dataType == null) {
+            warnUnregisteredType(typeID);
+            return;
+        }
+        for (BlockPos pos:posList) {
+            var dataMap = spatialMap.get(pos);
+            if (dataMap == null) return;
+            
+            purgeOldData(pos, dataType, dataMap);
+        }
     }
     
     public synchronized <T extends BlockData> void collectPositionsForType(
@@ -146,6 +207,16 @@ public class SyncedChunkData {
             outMap.put(pos, data);
         }
         
+    }
+    
+    public void setServerLevel(ServerLevel level) {
+        this.level = level;
+    }
+    
+    public void clearServerLevel(ServerLevel level) {
+        if (this.level == level) {
+            this.level = null;
+        }
     }
     
     private void purgeOldData(@NotNull BlockPos pos,
@@ -202,6 +273,22 @@ public class SyncedChunkData {
             }
         }
         root.put(CHUNK_DATA_ID, chunkDataTag);
+    }
+    
+    private Map<SerializableDataType<?>, Map<ClientSyncable, List<BlockPos>>> collectSyncableData() {
+        Map<SerializableDataType<?>, Map<ClientSyncable, List<BlockPos>>> syncablesMap = new HashMap<>();
+        for (var entry:spatialMap.entrySet()) {
+            var pos = entry.getKey();
+            var typeMap = entry.getValue();
+            for (var typeEntry:typeMap.entrySet()) {
+                if (!(typeEntry.getValue() instanceof ClientSyncable dataRecord)) continue;
+                if (!((typeEntry.getKey()) instanceof SerializableDataType<?> dataType)) continue;
+                Map<ClientSyncable, List<BlockPos>> map = syncablesMap.computeIfAbsent(dataType, key -> new HashMap<>());
+                List<BlockPos> posList = map.computeIfAbsent(dataRecord, key -> new ArrayList<>());
+                posList.add(pos);
+            }
+        }
+        return syncablesMap;
     }
     
     /**
@@ -279,5 +366,4 @@ public class SyncedChunkData {
             return BlockRecordsRegistry.SERIALIZABLE_DATA_TYPES.get(type_location);
         });
     }
-    
 }

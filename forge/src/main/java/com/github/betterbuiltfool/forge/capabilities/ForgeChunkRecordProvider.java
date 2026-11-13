@@ -43,4 +43,8 @@ public class ForgeChunkRecordProvider implements ICapabilitySerializable<Compoun
         this.commonStorage = commonStorage;
         this.holder = LazyOptional.of(() -> commonStorage);
     }
+    
+    public SyncedChunkData getCommonStorage() {
+        return commonStorage;
+    }
 }

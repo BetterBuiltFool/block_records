@@ -11,3 +11,5 @@
 /common/logs/latest.log
 /common/logs/
 /.idea/
+/forge/run/*
+/fabric/run/*

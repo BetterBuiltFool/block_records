@@ -1,15 +1,28 @@
 package com.github.betterbuiltfool.internal.network;
 
+import com.github.betterbuiltfool.BlockRecords;
 import com.github.betterbuiltfool.internal.network.handler.ClientPacketHandler;
-import com.github.betterbuiltfool.internal.network.payload.S2CDataSyncPacket;
-import dev.architectury.networking.NetworkManager;
+import com.github.betterbuiltfool.internal.network.payload.DataClear;
+import com.github.betterbuiltfool.internal.network.payload.DataSync;
+import dev.architectury.networking.NetworkChannel;
+import net.minecraft.resources.ResourceLocation;
 
 public class BlockRecordsNetwork {
+    public static final NetworkChannel CHANNEL = NetworkChannel.create(
+            new ResourceLocation(BlockRecords.MOD_ID, "network")
+    );
     public static void init() {
-        NetworkManager.registerReceiver(
-                NetworkManager.Side.S2C,
-                S2CDataSyncPacket.ID,
+        CHANNEL.register(
+                DataSync.class,
+                DataSync::write,
+                DataSync::read,
                 ClientPacketHandler::handleSyncPacket
+        );
+        CHANNEL.register(
+                DataClear.class,
+                DataClear::write,
+                DataClear::read,
+                ClientPacketHandler::handleClearPacket
         );
     }
 }
