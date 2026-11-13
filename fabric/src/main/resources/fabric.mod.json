@@ -20,6 +20,9 @@
     ],
     "client": [
       "com.github.betterbuiltfool.fabric.client.BlockRecordsFabricClient"
+    ],
+    "cardinal-components-chunk": [
+      "com.github.betterbuiltfool.fabric.components.FabricComponentRegistry"
     ]
   },
   "custom": {
