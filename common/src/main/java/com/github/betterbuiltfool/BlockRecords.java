@@ -53,7 +53,6 @@ public final class BlockRecords {
     }
 
     public static void init() {
-        BlockRecordsRegistry.init();
         BlockRecordsNetwork.init();
     }
     
