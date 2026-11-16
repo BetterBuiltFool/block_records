@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = BlockRecords.MOD_ID,bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ForgeChunkEventHandler {
     @SubscribeEvent
-    public void onChunkWatch(ChunkWatchEvent.Watch event) {
+    public static void onChunkWatch(ChunkWatchEvent.Watch event) {
         ClientboundDispatcher.syncChunk(event.getChunk(), event.getPlayer());
     }
 }
