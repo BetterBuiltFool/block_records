@@ -13,6 +13,14 @@ public class ForgeChunkRecordProvider implements ICapabilitySerializable<Compoun
     private SyncedChunkData commonStorage;
     private LazyOptional<SyncedChunkData> holder;
     
+    public ForgeChunkRecordProvider(SyncedChunkData commonStorage) {
+        setCommonStorage(commonStorage);
+    }
+    
+    public ForgeChunkRecordProvider() {
+        this(new SyncedChunkData());
+    }
+    
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> capability,
                                                       @Nullable Direction arg

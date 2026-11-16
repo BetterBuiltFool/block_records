@@ -52,7 +52,6 @@ public class ClientboundDispatcher {
             LevelChunk chunk,
             ServerPlayer player
     ) {
-        BlockRecords.LOGGER.info("Syncing chunk at {}", chunk.getPos());
         SyncedChunkData storage = BlockRecords.getSyncedChunkData(chunk);
         storage.sendUpdatePackets(player);
     }
