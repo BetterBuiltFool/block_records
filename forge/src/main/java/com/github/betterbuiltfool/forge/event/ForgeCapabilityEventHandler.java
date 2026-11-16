@@ -14,7 +14,7 @@ import net.minecraftforge.fml.common.Mod;
 public class ForgeCapabilityEventHandler {
     
     @SubscribeEvent
-    public void onAttachChunkCapabilities(AttachCapabilitiesEvent<LevelChunk> event) {
+    public static void onAttachChunkCapabilities(AttachCapabilitiesEvent<LevelChunk> event) {
         ForgeChunkRecordProvider provider = new ForgeChunkRecordProvider();
         LevelChunk chunk = event.getObject();
         Level level = chunk.getLevel();
