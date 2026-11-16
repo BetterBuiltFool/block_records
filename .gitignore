@@ -13,3 +13,5 @@
 /.idea/
 /forge/run/*
 /fabric/run/*
+/forge/run/
+/fabric/run/

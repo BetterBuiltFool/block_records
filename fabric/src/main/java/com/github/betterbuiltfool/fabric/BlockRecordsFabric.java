@@ -1,6 +1,7 @@
 package com.github.betterbuiltfool.fabric;
 
 import com.github.betterbuiltfool.fabric.components.FabricComponentRegistry;
+import com.github.betterbuiltfool.registry.BlockRecordsRegistry;
 import net.fabricmc.api.ModInitializer;
 
 import com.github.betterbuiltfool.BlockRecords;
@@ -19,5 +20,6 @@ public final class BlockRecordsFabric implements ModInitializer {
 
         // Run our common setup.
         BlockRecords.init();
+        BlockRecordsRegistry.init();
     }
 }
